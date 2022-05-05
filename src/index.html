@@ -1,6 +1,8 @@
+
 <!doctype html>
 <html>
   <head>
+
     <title>Spotify Artist Follow</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -24,10 +26,15 @@
         <h1>Spotify Artist Follow</h1>
         <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
       </div>
+      <div id="error">
+        <span id="errorMsg" style="color:red"></span>
+      </div>
+      <div id="logout" style="display:none">
+        <button id="logout-button" class="btn btn-primary">Log out from Spotify</button>
+      </div>
       <div id="loggedin">
         <div id="user-profile">
         </div>
-        <button id="logout-button" class="btn btn-primary">Log out from Spotify</button>
         <div id="follow">
           <h1>Follow all artists: </h1>
           <button id="follow-button" class="btn btn-primary">Follow All</button>
@@ -45,7 +52,7 @@
         <div class="media-body">
           <dl class="dl-horizontal">
             {{#each this}}  
-            <dt><dd class="clearfix"><img src="{{this.images.[2].url}}" height=40 width=40>   {{this.name}}</dd></dt><br>
+            <dt><dd class="clearfix"><img src="{{this.images.[2].url}}" height=40 width=40>   <a href="{{this.external_urls.spotify}}" target="_blank" rel="noopener noreferrer">{{this.name}}</a></dd></dt><br>
             {{/each}}
           </dl>
         </div>
@@ -61,6 +68,7 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
+		var stateKey = 'spotify_auth_state';
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
             userProfileTemplate = Handlebars.compile(userProfileSource),
             userProfilePlaceholder = document.getElementById('user-profile');
@@ -71,17 +79,20 @@
 
         const qs = new URLSearchParams(window.location.search)
 
-        var access_token = Cookies.get("access_token"),
+        var access_token = Cookies.get("t"),
             user_id = "",
             state = Cookies.get("state"),
-            error = qs.get("error");
+            error = qs.get("error"),
+        storedState = localStorage.getItem(stateKey);
        
         console.log(`access_token = ${access_token}, state = ${state}, error = ${error}`);    
+        localStorage.setItem(stateKey, state);
 
         var api_root_url = 'https://api.spotify.com/v1';
-        if (error /*|| (access_token && state == null)*/) {
-          alert('There was an error during the authentication');
+        if (error || (access_token && (state == null || (storedState && state !== storedState)))) {
+          $('#errorMsg').text('There was an error during the authentication');
         } else {
+          localStorage.removeItem(stateKey);
           if (access_token) {
             $.ajax({
                 url: api_root_url + '/me/',
@@ -94,26 +105,36 @@
 
                   $('#login').hide();
                   $('#loggedin').show();
+                  $('#logout').show(); 
+                },
+                error: function(err) {
+                  $('#errorMsg').text(err.responseText);
+                  Cookies.remove("t", { path: '' });
+                  Cookies.remove("state", { path: '' });
+                  Cookies.remove("error", { path: '' });
+                  // since access_token is valid, show logout button  
+                  $('#logout').show();
                 }
             });
           } else {
               $('#login').show();
               $('#loggedin').hide();
+              $('#logout').hide();
           }
 
           document.getElementById('login-button').addEventListener('click', function() {
-            window.location = 'http://localhost/follow/login.php';   
+            window.location = '/follow/login.php';   
           }, false);
 
           document.getElementById('logout-button').addEventListener('click', function() {
-            Cookies.remove("access_token", { path: '' });
+            Cookies.remove("t", { path: '' });
             Cookies.remove("state", { path: '' });
             Cookies.remove("error", { path: '' });
-            window.location = 'https://www.spotify.com/logout/';   
+            window.location = "/follow/logout.php";
           }, false);
 
           document.getElementById('follow-button').addEventListener('click', function() {
-            var url = `http://localhost/follow/follow.php?access_token=${access_token}&id=${user_id}`;
+            var url = `/follow/follow.php?access_token=${access_token}&id=${user_id}`;
             $.ajax({type: 'GET', url: url})
             .done(function(response) {
               artistsFollowedPlaceholder.innerHTML = artistsFollowedTemplate(response);
@@ -121,6 +142,14 @@
             .fail(function(msg) {
               alert(`Failed with error: ${JSON.stringify(msg)}`);
             });
+          }, false);
+		  // This is to reload index page on back button post-logout in Safari/Firefox
+          window.addEventListener("pageshow", function(evt){
+            if(evt.persisted){
+              setTimeout(function(){
+                  window.location.reload();
+              },10);
+            }
           }, false);
         }
       })();
