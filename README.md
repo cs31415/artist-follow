@@ -13,8 +13,9 @@ Navigate to `http://localhost/follow` and select the `Login to Spotify` button, 
 
 ### Resources
 
-- [Spotify Auth Example](https://github.com/spotify/web-api-auth-examples)
-- [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant/)
+- [Spotify Authorization Guide](https://developer.spotify.com/documentation/general/guides/authorization/)
+- [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization/code-flow/)
 - [Spotify Follow API](https://developer.spotify.com/console/put-following/)
+- [Spotify Auth Example](https://github.com/spotify/web-api-auth-examples)
 
 
