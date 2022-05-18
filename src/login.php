@@ -9,9 +9,7 @@
 
     $client_id = config()["client_id"]; 
     $redirect_uri = config()["redirect_url"]; // Your redirect uri
-
     $state = generateRandomString(16);
-
     $scope = "user-follow-modify";
 
     $url = "https://accounts.spotify.com/authorize";

@@ -1,13 +1,12 @@
 <?php header('Access-Control-Allow-Origin: *'); ?>
 
 <?php
-   require_once 'common.php';
+    require_once 'common.php';
 
     // get token & state from url 
     $error = isset($_GET["error"]) ? $_GET["error"] : NULL;
     $code = $_GET["code"];
     $state = $_GET["state"];
-
     $url = "/follow";    
 
     if (!is_null($error)) {
