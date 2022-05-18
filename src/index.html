@@ -85,7 +85,6 @@
             display_name = Cookies.get("display_name"),
         storedState = localStorage.getItem(stateKey);
        
-        console.log(`access_token = ${access_token}, state = ${state}, user_id = ${user_id}, display_name = ${display_name}, error = ${error}`);    
         localStorage.setItem(stateKey, state);
 
         var api_root_url = 'https://api.spotify.com/v1';
