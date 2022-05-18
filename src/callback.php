@@ -1,13 +1,7 @@
 <?php header('Access-Control-Allow-Origin: *'); ?>
 
 <?php
-/*    header("Expires: 0");
-    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-    header('Access-Control-Allow-Methods: GET, POST');
-    header("Cache-Control: post-check=0, pre-check=0", false);
-    header("Pragma: no-cache");
-*/
-    require_once 'common.php';
+   require_once 'common.php';
 
     // get token & state from url 
     $error = isset($_GET["error"]) ? $_GET["error"] : NULL;
@@ -38,7 +32,6 @@
         
         //url-ify the data for the POST
         $fields_string = http_build_query($fields);
-        console_log("fields_string = " . $fields_string);
 
         $result = http_request("POST", $url, 
             array(
@@ -49,10 +42,30 @@
         if ($result !== FALSE) {    
             $result_arr = json_decode($result, true);
             $access_token = $result_arr["access_token"];
-            setcookie("t", $access_token, time()+1200); 
+            $enc_access_token = encrypt($access_token); 
+
+            setcookie("t", $enc_access_token, time()+1200); 
             setcookie("state", $state, time()+1200); 
-            setcookie("id", $client_id);
             header("Location: /follow");
+
+            // get the client-id & name
+            $url = 'https://api.spotify.com/v1/me';   
+            $result = http_request("GET", $url, 
+                array(
+                    'authorization: Bearer ' . $access_token
+                ));
+
+            if ($result !== FALSE) {    
+                $result_arr = json_decode($result, true);
+                $display_name = $result_arr["display_name"];
+                $user_id = $result_arr["id"];
+                setcookie("display_name", $display_name);
+                setcookie("user_id", $user_id);
+                header("Location: /follow");
+            }
+            else {
+                header("Location: /follow?error=profile_error");
+            }    
         }
         else {
             header("Location: /follow?error=authorization_error");

@@ -2,7 +2,6 @@
 <!doctype html>
 <html>
   <head>
-
     <title>Spotify Artist Follow</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -39,7 +38,7 @@
           <h1>Follow all artists: </h1>
           <button id="follow-button" class="btn btn-primary">Follow All</button>
           <div id="artists-followed"></div>
-        </div>
+        </div>    
       </div>
     </div>
     
@@ -52,7 +51,7 @@
         <div class="media-body">
           <dl class="dl-horizontal">
             {{#each this}}  
-            <dt><dd class="clearfix"><img src="{{this.images.[2].url}}" height=40 width=40>   <a href="{{this.external_urls.spotify}}" target="_blank" rel="noopener noreferrer">{{this.name}}</a></dd></dt><br>
+            <dt><dd class="clearfix"><img src="{{this.images.[2].url}}">   <a href="{{this.external_urls.spotify}}" target="_blank" rel="noopener noreferrer">{{this.name}}</a></dd></dt><br>
             {{/each}}
           </dl>
         </div>
@@ -80,42 +79,40 @@
         const qs = new URLSearchParams(window.location.search)
 
         var access_token = Cookies.get("t"),
-            user_id = "",
+            user_id = Cookies.get("user_id"),
             state = Cookies.get("state"),
             error = qs.get("error"),
+            display_name = Cookies.get("display_name"),
         storedState = localStorage.getItem(stateKey);
        
-        console.log(`access_token = ${access_token}, state = ${state}, error = ${error}`);    
+        console.log(`access_token = ${access_token}, state = ${state}, user_id = ${user_id}, display_name = ${display_name}, error = ${error}`);    
         localStorage.setItem(stateKey, state);
 
         var api_root_url = 'https://api.spotify.com/v1';
         if (error || (access_token && (state == null || (storedState && state !== storedState)))) {
-          $('#errorMsg').text('There was an error during the authentication');
+          if (error === "profile_error") {
+            $('#errorMsg').text('There was an error getting the user profile');
+          }
+          else {
+            $('#errorMsg').text('There was an error during the authentication');
+          }
         } else {
           localStorage.removeItem(stateKey);
           if (access_token) {
-            $.ajax({
-                url: api_root_url + '/me/',
-                headers: {
-                  'Authorization': 'Bearer ' + access_token
-                },
-                success: function(response) {
-                  user_id = response.id;
-                  userProfilePlaceholder.innerHTML = userProfileTemplate(response);
-
-                  $('#login').hide();
-                  $('#loggedin').show();
-                  $('#logout').show(); 
-                },
-                error: function(err) {
-                  $('#errorMsg').text(err.responseText);
+            if (display_name) {
+              userProfilePlaceholder.innerHTML = userProfileTemplate({ display_name });
+              $('#login').hide();
+              $('#loggedin').show();
+              $('#logout').show(); 
+            }
+            else {
+              $('#errorMsg').text(err.responseText);
                   Cookies.remove("t", { path: '' });
                   Cookies.remove("state", { path: '' });
                   Cookies.remove("error", { path: '' });
                   // since access_token is valid, show logout button  
                   $('#logout').show();
-                }
-            });
+            }
           } else {
               $('#login').show();
               $('#loggedin').hide();
@@ -140,15 +137,16 @@
               artistsFollowedPlaceholder.innerHTML = artistsFollowedTemplate(response);
             })
             .fail(function(msg) {
-              alert(`Failed with error: ${JSON.stringify(msg)}`);
+              $('#errorMsg').text(msg.responseJSON.msg); 
             });
           }, false);
-		  // This is to reload index page on back button post-logout in Safari/Firefox
+
+          // This is to reload index page on back button post-logout in Safari/Firefox
           window.addEventListener("pageshow", function(evt){
             if(evt.persisted){
               setTimeout(function(){
                   window.location.reload();
-              },10);
+              },5);
             }
           }, false);
         }

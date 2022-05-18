@@ -1,7 +1,6 @@
 <?php header('Access-Control-Allow-Origin: *'); ?>
 
 <?php
-
     require 'common.php';
 
     function random() {
