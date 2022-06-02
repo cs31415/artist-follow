@@ -38,7 +38,7 @@
             ),
             $fields_string);
 
-        if ($result !== FALSE) {    
+        if ($result !== FALSE && ($result === "" || !array_key_exists("error", json_decode($result,true)))) {    
             $result_arr = json_decode($result, true);
             $access_token = $result_arr["access_token"];
             $enc_access_token = encrypt($access_token); 
@@ -54,7 +54,7 @@
                     'authorization: Bearer ' . $access_token
                 ));
 
-            if ($result !== FALSE) {    
+            if ($result !== FALSE && ($result === "" || !array_key_exists("error", json_decode($result,true)))) {    
                 $result_arr = json_decode($result, true);
                 $display_name = $result_arr["display_name"];
                 $user_id = $result_arr["id"];

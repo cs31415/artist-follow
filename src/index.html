@@ -51,7 +51,7 @@
         <div class="media-body">
           <dl class="dl-horizontal">
             {{#each this}}  
-            <dt><dd class="clearfix"><img src="{{this.images.[2].url}}">   <a href="{{this.external_urls.spotify}}" target="_blank" rel="noopener noreferrer">{{this.name}}</a></dd></dt><br>
+            <dt><dd class="clearfix"><a href="{{this.external_urls.spotify}}" target="_blank" rel="noopener noreferrer"><img src="{{this.images.[0].url}}" width="100"/>  {{this.name}}</a></dd></dt><br>
             {{/each}}
           </dl>
         </div>
